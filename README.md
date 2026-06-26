@@ -173,6 +173,30 @@ El próximo `juvinfactory` que ejecutes incluirá el nuevo agente.
 
 ---
 
+## Actualizar JuvinFactory
+
+Cuando agregues agentes o mejoras al propio scaffold:
+
+```bash
+# 1. Editar juvinfactory.js (agregar agente, mejorar prompt, etc.)
+
+# 2. Publicar nueva versión
+git add juvinfactory.js
+git commit -m "v1.1.0: descripción del cambio"
+git tag v1.1.0
+git push origin main --tags
+```
+
+Para traer la última versión a una máquina que ya lo tiene clonado:
+
+```bash
+cd juvinfactory
+git pull origin main
+npm link   # reinstala el ejecutable global si cambió algo
+```
+
+---
+
 ## Versiones
 
 | Versión | Cambios |
