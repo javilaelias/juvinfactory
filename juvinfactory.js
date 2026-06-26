@@ -100,26 +100,27 @@ async function mostrarManual() {
   console.log(chalk.yellow.bold('  CREAR UNA APP NUEVA'));
   console.log(chalk.yellow.bold('  ══════════════════════════════════════════\n'));
 
-  console.log(chalk.white('  Paso 1 — Preparar el brief'));
-  console.log(chalk.gray('    Puede ser una idea corta o una spec técnica completa de NotebookLM.'));
-  console.log(chalk.gray('    No importa el largo. JuvinFactory procesa ambos.\n'));
-
-  console.log(chalk.white('  Paso 2 — Ejecutar el scaffold'));
+  console.log(chalk.white('  Paso 1 — Ejecutar el scaffold'));
   console.log(chalk.cyan('    juvinfactory'));
   console.log(chalk.gray('    → Elegí NUEVO'));
   console.log(chalk.gray('    → Nombre del proyecto (ej: clinica-virtual)'));
-  console.log(chalk.gray('    → Componentes (Backend, Frontend, Docker, Git)'));
-  console.log(chalk.gray('    → Pegá tu brief/spec si lo tenés (opcional)\n'));
+  console.log(chalk.gray('    → Componentes (Backend, Frontend, Docker, Git)\n'));
+
+  console.log(chalk.white('  Paso 2 — Pegar tu spec en BRIEF.md'));
+  console.log(chalk.gray('    El scaffold crea BRIEF.md con un template vacío.'));
+  console.log(chalk.gray('    Abrilo con cualquier editor y pegá tu spec completa.'));
+  console.log(chalk.gray('    Sin límite de largo — puede ser una idea corta o un'));
+  console.log(chalk.gray('    documento técnico completo de NotebookLM.\n'));
+  console.log(chalk.yellow('    ⚠️  No pegues specs largas en la terminal ni en el chat'));
+  console.log(chalk.yellow('       de Claude Code — usá siempre BRIEF.md.\n'));
 
   console.log(chalk.white('  Paso 3 — Abrir Claude Code en el proyecto'));
   console.log(chalk.cyan('    cd clinica-virtual'));
   console.log(chalk.gray('    Abrí Claude Code en esta carpeta\n'));
 
   console.log(chalk.white('  Paso 4 — Activar JuvinFactory'));
-  console.log(chalk.gray('    Si pegaste el brief en el wizard:'));
   console.log(chalk.cyan('    /juvin'));
-  console.log(chalk.gray('    Si preferís pegarlo ahora (acepta specs largas):'));
-  console.log(chalk.cyan('    /juvin <tu brief o spec completa>\n'));
+  console.log(chalk.gray('    Lee BRIEF.md automáticamente. Sin copiar ni pegar nada.\n'));
 
   console.log(chalk.white('  Paso 5 — JuvinFactory toma el control'));
   console.log(chalk.gray('    → Detecta si la idea es amplia → propone 3 opciones de acotación'));
@@ -210,8 +211,8 @@ async function mostrarManual() {
   console.log(chalk.yellow.bold('  ══════════════════════════════════════════'));
   console.log(chalk.yellow.bold('  TIPS'));
   console.log(chalk.yellow.bold('  ══════════════════════════════════════════\n'));
-  console.log(chalk.gray('  • El brief puede ser largo — pegá toda tu spec de NotebookLM en /juvin'));
-  console.log(chalk.gray('  • Si guardaste el brief en el wizard, /juvin sola lee BRIEF.md'));
+  console.log(chalk.gray('  • La spec va en BRIEF.md (editor de texto), no en la terminal ni en el chat'));
+  console.log(chalk.gray('  • /juvin sin argumentos lee BRIEF.md automáticamente'));
   console.log(chalk.gray('  • 1 sesión de Claude Code = 1 bloque. Siempre terminá con /cierre'));
   console.log(chalk.gray('  • Nueva sesión: pegá el CONTEXTO generado por /cierre y usá /manten'));
   console.log(chalk.gray('  • Para agregar un agente: editá crearAgentes() en juvinfactory.js\n'));
@@ -256,12 +257,6 @@ async function proyectoNuevo() {
         { name: 'Inicializar Git', value: 'git', checked: true }
       ]
     },
-    {
-      type: 'input',
-      name: 'brief',
-      message: chalk.yellow('Brief o spec del proyecto (Enter para omitir — podés pegarlo largo):'),
-      default: ''
-    }
   ]);
 
   const rutaProyecto = path.join(respuestas.directorio, respuestas.nombre);
@@ -301,14 +296,17 @@ async function proyectoNuevo() {
       spinner.succeed('Temas configurados');
     }
 
-    if (respuestas.brief && respuestas.brief.trim()) {
-      spinner.start('Guardando brief en BRIEF.md...');
-      await fs.writeFile(
-        path.join(rutaProyecto, 'BRIEF.md'),
-        `# Brief del Proyecto: ${respuestas.nombre}\n\n${respuestas.brief.trim()}\n`
-      );
-      spinner.succeed('BRIEF.md creado — usá /juvin para activar JuvinFactory con este brief');
-    }
+    spinner.start('Creando BRIEF.md...');
+    await escribirSiNoExiste(
+      path.join(rutaProyecto, 'BRIEF.md'),
+      `# Brief del Proyecto: ${respuestas.nombre}
+
+<!-- Pegá acá tu spec completa (puede ser larga, de NotebookLM o cualquier fuente).
+     Sin límite de extensión. Guardá el archivo y luego usá /juvin en Claude Code. -->
+
+`
+    );
+    spinner.succeed('BRIEF.md creado — pegá tu spec ahí antes de abrir Claude Code');
 
     if (respuestas.extras.includes('git')) {
       spinner.start('Inicializando Git...');
@@ -319,13 +317,11 @@ async function proyectoNuevo() {
     console.log(chalk.green.bold('\n✅ ¡Proyecto creado exitosamente!\n'));
     console.log(chalk.cyan('Próximos pasos:'));
     console.log(`  1. cd ${respuestas.nombre}`);
-    console.log(`  2. Abrí Claude Code en esta carpeta`);
-    if (respuestas.brief && respuestas.brief.trim()) {
-      console.log(chalk.yellow(`  3. Escribí: /juvin  (lee BRIEF.md automáticamente)`));
-    } else {
-      console.log(chalk.yellow(`  3. Escribí: /juvin <tu brief o spec completa>`));
-    }
-    console.log(`  4. JuvinFactory toma el control\n`);
+    console.log(chalk.yellow(`  2. Abrí BRIEF.md y pegá tu spec completa (sin límite de largo)`));
+    console.log(`  3. Guardá BRIEF.md`);
+    console.log(`  4. Abrí Claude Code en esta carpeta`);
+    console.log(chalk.yellow(`  5. Escribí: /juvin`));
+    console.log(chalk.gray(`     JuvinFactory lee BRIEF.md automáticamente\n`));
 
   } catch (error) {
     spinner.fail(chalk.red('Error durante la creación'));
