@@ -1066,7 +1066,7 @@ flutter:
     const l10nYaml = `arb-dir: lib/l10n
 template-arb-file: app_es.arb
 output-localization-file: app_localizations.dart
-preferred-supported-locales: [es]
+preferred-supported-locales: [es, en]
 `;
     await escribirSiNoExiste(path.join(ruta, 'frontend/l10n.yaml'), l10nYaml);
   }
@@ -1442,20 +1442,26 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
+  // Día es el tema por defecto y Español el idioma por defecto.
   ThemeMode _themeMode = ThemeMode.light;
+  Locale _locale = const Locale('es');
 
   void _toggleTheme() => setState(() {
     _themeMode = _themeMode == ThemeMode.light ? ThemeMode.dark : ThemeMode.light;
   });
 
+  void _toggleLocale() => setState(() {
+    _locale = _locale.languageCode == 'es' ? const Locale('en') : const Locale('es');
+  });
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'App',
+      onGenerateTitle: (context) => AppLocalizations.of(context)!.appTitle,
       theme: temaClaro,
       darkTheme: temaOscuro,
       themeMode: _themeMode,
-      locale: const Locale('es'),
+      locale: _locale,
       supportedLocales: AppLocalizations.supportedLocales,
       localizationsDelegates: const [
         AppLocalizations.delegate,
@@ -1463,17 +1469,27 @@ class _MyAppState extends State<MyApp> {
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
-      home: Scaffold(
-        appBar: AppBar(
-          title: const Text('App'),
-          actions: [
-            IconButton(
-              icon: Icon(_themeMode == ThemeMode.light ? Icons.dark_mode : Icons.light_mode),
-              onPressed: _toggleTheme,
+      home: Builder(
+        builder: (context) {
+          final t = AppLocalizations.of(context)!;
+          return Scaffold(
+            appBar: AppBar(
+              title: Text(t.appTitle),
+              actions: [
+                IconButton(
+                  icon: const Icon(Icons.language),
+                  tooltip: _locale.languageCode == 'es' ? 'English' : 'Español',
+                  onPressed: _toggleLocale,
+                ),
+                IconButton(
+                  icon: Icon(_themeMode == ThemeMode.light ? Icons.dark_mode : Icons.light_mode),
+                  onPressed: _toggleTheme,
+                ),
+              ],
             ),
-          ],
-        ),
-        body: const Center(child: Text('Bienvenido')),
+            body: Center(child: Text(t.welcome)),
+          );
+        },
       ),
     );
   }
