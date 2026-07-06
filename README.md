@@ -201,4 +201,5 @@ npm link   # reinstala el ejecutable global si cambió algo
 
 | Versión | Cambios |
 |---|---|
+| v1.1.0 | App Flutter generada: botón para alternar idioma ES/EN en tiempo de ejecución (antes el locale era fijo) |
 | v1.0.0 | Sistema completo: 9 agentes, 4 slash commands, manual interactivo, captura de brief |
